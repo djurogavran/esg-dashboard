@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESG Narrative Intelligence — MVP Research Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #060b08;
+    --surface: #0d1410;
+    --surface2: #111a14;
+    --surface3: #151f18;
+    --border: #1a2b1e;
+    --border2: #223028;
+    --green: #2ecc71;
+    --green-bright: #4dff91;
+    --green-dim: #1a8a48;
+    --green-muted: #0d3d20;
+    --amber: #f39c12;
+    --amber-dim: #7a4d08;
+    --red: #e74c3c;
+    --red-dim: #3d0f08;
+    --blue: #3498db;
+    --blue-dim: #0d2a3d;
+    --purple: #9b59b6;
+    --text: #d4e8da;
+    --text-muted: #5a7a62;
+    --text-dim: #2d4433;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(6,11,8,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 15px;
+    color: var(--green);
+    letter-spacing: .02em;
+  }
+  .nav-logo span { font-style: italic; }
+  .nav-links {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-links a {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: background .15s, color .15s;
+  }
+  .nav-links a:hover { background: var(--surface2); color: var(--text); }
+  .nav-links a.active { background: var(--green-muted); color: var(--green); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 24px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: .4;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent);
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(46,204,113,.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp .6s .2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(42px, 7vw, 88px);
+    line-height: 1.0;
+    color: var(--text);
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp .6s .3s forwards;
+  }
+  .hero h1 em { font-style: italic; color: var(--green); }
+
+  .hero-sub {
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--text-muted);
+    max-width: 600px;
+    line-height: 1.6;
+    margin: 20px auto 40px;
+    opacity: 0;
+    animation: fadeUp .6s .4s forwards;
+  }
+
+  .hero-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp .6s .5s forwards;
+  }
+  .hb {
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 3px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .hb.green  { background: var(--green-muted); color: var(--green); border-color: var(--green-dim); }
+  .hb.amber  { background: var(--amber-dim);   color: var(--amber); border-color: var(--amber); opacity: .8; }
+  .hb.red    { background: var(--red-dim);      color: var(--red);   border-color: var(--red); opacity: .8; }
+  .hb.blue   { background: var(--blue-dim);     color: var(--blue);  border-color: var(--blue); opacity: .8; }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp .6s .6s forwards;
+  }
+  .hs { text-align: center; }
+  .hs .val {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    color: var(--green-bright);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hs .lbl { font-size: 10px; color: var(--text-muted); letter-spacing: .12em; text-transform: uppercase; }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    animation: bounce 2s infinite;
+    opacity: 0;
+    animation: fadeIn .5s 1.2s forwards, bounce 2s 1.5s infinite;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 80px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .sec-num {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .2em;
+    flex-shrink: 0;
+  }
+  .sec-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(24px, 3vw, 36px);
+    color: var(--text);
+  }
+  .sec-title em { font-style: italic; color: var(--green); }
+  .sec-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ── MARKET SECTION ── */
+  .market-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .market-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    transition: border-color .2s, transform .2s;
+  }
+  .market-card:hover { border-color: var(--green-dim); transform: translateY(-2px); }
+  .market-card.span2 { grid-column: span 2; }
+
+  .mc-label { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+  .mc-val { font-family: 'Instrument Serif', serif; font-size: 48px; color: var(--green-bright); line-height: 1; margin-bottom: 8px; }
+  .mc-sub { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .mc-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+
+  /* CHART BARS */
+  .bar-chart { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 11px; color: var(--text-muted); width: 120px; flex-shrink: 0; text-align: right; }
+  .bar-track { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--green);
+    width: 0;
+    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  .bar-val { font-size: 11px; color: var(--green); width: 60px; }
+
+  /* ── PROBLEM SECTION ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .prob-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color .2s;
+  }
+  .prob-card:hover { border-color: var(--red); }
+  .prob-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+  .prob-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .prob-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; }
+  .prob-stat { margin-top: 12px; font-size: 11px; color: var(--red); font-weight: 600; }
+
+  .greenwash-cases {
+    background: var(--red-dim);
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .gc-title { font-size: 13px; font-weight: 600; color: var(--red); margin-bottom: 16px; }
+  .gc-list { display: flex; flex-direction: column; gap: 10px; }
+  .gc-item { display: flex; align-items: flex-start; gap: 12px; }
+  .gc-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; margin-top: 5px; }
+  .gc-text { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+  .gc-text strong { color: var(--text); }
+
+  /* ── SOLUTION SECTION ── */
+  .solution-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .sf-step {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 14px;
+    width: 150px;
+    text-align: center;
+    transition: border-color .2s, background .2s;
+    cursor: default;
+  }
+  .sf-step:hover { border-color: var(--green-dim); background: var(--surface2); }
+  .sf-step.hitl { border-color: var(--amber-dim); background: #130f08; }
+  .sf-step.hitl .sf-title { color: var(--amber); }
+  .sf-step.shield { border-color: var(--green-dim); background: var(--green-muted); }
+  .sf-step.shield .sf-title { color: var(--green); }
+  .sf-icon { font-size: 20px; margin-bottom: 8px; display: block; }
+  .sf-title { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+  .sf-desc { font-size: 9.5px; color: var(--text-muted); line-height: 1.4; }
+  .sf-arrow { font-size: 18px; color: var(--text-dim); flex-shrink: 0; padding: 0 4px; }
+
+  .differentiators {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .diff-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color .2s;
+  }
+  .diff-card:hover { border-color: var(--green-dim); }
+  .diff-label { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .diff-title { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 6px; }
+  .diff-desc { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── TRACTION SECTION ── */
+  .traction-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .tr-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+  }
+  .tr-card.highlight { background: var(--green-muted); border-color: var(--green-dim); }
+  .tr-val { font-family: 'Instrument Serif', serif; font-size: 36px; color: var(--green-bright); line-height: 1; margin-bottom: 6px; }
+  .tr-label { font-size: 11px; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; line-height: 1.4; }
+
+  .pivot-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .pivot-col .p-label { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; }
+  .pivot-col.before .p-label { color: var(--red); }
+  .pivot-col.after  .p-label { color: var(--green); }
+  .pivot-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .pivot-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .pivot-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── BUSINESS MODEL ── */
+  .bm-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .bm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color .2s;
+  }
+  .bm-card:hover { border-color: var(--green-dim); }
+  .bm-label { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+  .bm-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .bm-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; }
+  .bm-price { margin-top: 10px; font-size: 18px; font-family: 'Instrument Serif', serif; color: var(--green); }
+
+  .margin-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+  }
+  .mv-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 20px; }
+  .mv-bars { display: flex; gap: 20px; align-items: flex-end; height: 120px; }
+  .mv-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .mv-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: height 1s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .mv-bar.green-b { background: linear-gradient(to top, var(--green-dim), var(--green)); }
+  .mv-bar.blue-b  { background: linear-gradient(to top, #0d4a7a, var(--blue)); }
+  .mv-bar.amber-b { background: linear-gradient(to top, var(--amber-dim), var(--amber)); }
+  .mv-bar-val { font-size: 14px; font-weight: 600; color: var(--text); }
+  .mv-bar-lbl { font-size: 10px; color: var(--text-muted); text-align: center; letter-spacing: .05em; }
+
+  /* ── TECH STACK SECTION ── */
+  .tech-layers { display: flex; flex-direction: column; gap: 12px; }
+  .tech-layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .tl-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tl-header.green-h  { background: var(--green-muted); }
+  .tl-header.blue-h   { background: var(--blue-dim); }
+  .tl-header.amber-h  { background: var(--amber-dim); }
+  .tl-header.purple-h { background: #1e1035; }
+
+  .tl-header .tl-name { font-size: 12px; font-weight: 600; }
+  .tl-header.green-h  .tl-name { color: var(--green); }
+  .tl-header.blue-h   .tl-name { color: var(--blue);  }
+  .tl-header.amber-h  .tl-name { color: var(--amber); }
+  .tl-header.purple-h .tl-name { color: #c4a8f5; }
+  .tl-header .tl-desc { font-size: 10px; color: var(--text-muted); }
+
+  .tl-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .tl-tool {
+    padding: 14px 18px;
+    border-right: 1px solid var(--border);
+    flex: 1;
+    min-width: 150px;
+    transition: background .15s;
+  }
+  .tl-tool:hover { background: var(--surface2); }
+  .tl-tool-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .tl-tool-role { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── ROADMAP ── */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .rm-phase {
+    padding: 28px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .rm-phase:last-child { border-right: none; }
+  .rm-phase:nth-child(2) { background: #0a1a10; }
+
+  .rm-num { font-size: 10px; color: var(--text-dim); letter-spacing: .2em; margin-bottom: 10px; }
+  .rm-title { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text); margin-bottom: 4px; }
+  .rm-timeline { font-size: 11px; color: var(--green); margin-bottom: 16px; font-weight: 600; }
+  .rm-items { display: flex; flex-direction: column; gap: 8px; }
+  .rm-item { font-size: 11px; color: var(--text-muted); padding-left: 14px; position: relative; line-height: 1.5; }
+  .rm-item::before { content: '→'; position: absolute; left: 0; color: var(--green); font-size: 10px; }
+  .rm-cost { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .rm-cost-val { font-family: 'Instrument Serif', serif; font-size: 24px; color: var(--green); }
+  .rm-cost-lbl { font-size: 10px; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; }
+
+  /* ── ASK SECTION ── */
+  .ask-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .ask-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color .2s, transform .2s;
+  }
+  .ask-card:hover { border-color: var(--green-dim); transform: translateY(-2px); }
+  .ask-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+  .ask-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .ask-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; }
+
+  .founder-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .fc-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--green-muted);
+    border: 2px solid var(--green-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .fc-name { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text); margin-bottom: 2px; }
+  .fc-role { font-size: 11px; color: var(--green); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+  .fc-bio { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: .1em;
+  }
+  footer span { color: var(--green); }
+
+  /* ── INTERACTIVE: TABS ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab-btn {
+    font-size: 11px;
+    padding: 7px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+  .tab-btn:hover { border-color: var(--green-dim); color: var(--text); }
+  .tab-btn.active { background: var(--green-muted); border-color: var(--green-dim); color: var(--green); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── COMPETITOR TABLE ── */
+  .comp-table { width: 100%; border-collapse: collapse; }
+  .comp-table th {
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .comp-table td {
+    font-size: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .comp-table tr.us td { color: var(--text); }
+  .comp-table tr.us { background: var(--green-muted); }
+  .comp-table tr:hover td { background: var(--surface2); color: var(--text); }
+  .comp-table tr.us:hover td { background: var(--green-muted); }
+  .check { color: var(--green); font-weight: 700; }
+  .cross { color: var(--red); }
+  .partial { color: var(--amber); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+  @keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes bounce  { 0%,100% { transform: translateX(-50%) translateY(0) } 50% { transform: translateX(-50%) translateY(-6px) } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s, transform .6s; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* SECTION DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 0 32px;
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 16px; }
+    .nav-links { display: none; }
+    section { padding: 60px 16px; }
+    .market-grid { grid-template-columns: 1fr; }
+    .market-card.span2 { grid-column: span 1; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .differentiators { grid-template-columns: 1fr; }
+    .traction-row { grid-template-columns: 1fr; }
+    .pivot-box { grid-template-columns: 1fr; }
+    .bm-grid { grid-template-columns: 1fr; }
+    .roadmap { grid-template-columns: 1fr; }
+    .rm-phase { border-right: none; border-bottom: 1px solid var(--border); }
+    .ask-grid { grid-template-columns: 1fr; }
+    .solution-flow { gap: 0; }
+    .hero-stats { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">ESG Narrative <span>Intelligence</span></div>
+  <div class="nav-links">
+    <a href="#market" class="active">Market</a>
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#traction">Traction</a>
+    <a href="#model">Model</a>
+    <a href="#stack">Stack</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#ask">Ask</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">MVP Research Dashboard · Vanguard Cotrugli MBA · 2026</div>
+  <h1>ESG Narrative<br><em>Intelligence</em></h1>
+  <p class="hero-sub">Turning ESG reports into credible, compliant stories — without greenwashing. A human-in-the-loop AI platform for ESG and corporate communications teams.</p>
+  <div class="hero-badges">
+    <span class="hb green">Human-in-the-Loop AI</span>
+    <span class="hb red">Anti-Greenwashing</span>
+    <span class="hb amber">B2B SaaS</span>
+    <span class="hb blue">SDG 9 · SDG 12</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hs"><div class="val">$21.5B</div><div class="lbl">ESG market 2025</div></div>
+    <div class="hs"><div class="val">14.2%</div><div class="lbl">CAGR to 2035</div></div>
+    <div class="hs"><div class="val">€11.4k</div><div class="lbl">First paid pilot</div></div>
+    <div class="hs"><div class="val">€25M</div><div class="lbl">DWS greenwashing fine</div></div>
+  </div>
+  <div class="scroll-hint">↓ scroll to explore</div>
+</div>
+
+<!-- ═══ MARKET ═══ -->
+<div class="divider"></div>
+<section id="market">
+  <div class="sec-header reveal">
+    <span class="sec-num">01</span>
+    <h2 class="sec-title">Market <em>Opportunity</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="market-grid reveal">
+    <div class="market-card">
+      <div class="mc-label">Global ESG Market Size</div>
+      <div class="mc-val">$21.5B</div>
+      <div class="mc-sub">in 2025, projected to reach <strong style="color:var(--text)">$78.3B by 2035</strong> at 14.2% CAGR. Europe leads globally with 35%+ market share driven by CSRD and EU Taxonomy regulation.</div>
+    </div>
+    <div class="market-card">
+      <div class="mc-label">Immediate Target: EU Companies under CSRD</div>
+      <div class="mc-val">50k+</div>
+      <div class="mc-sub">companies now required to disclose detailed sustainability performance data under CSRD. After EU Omnibus reform: focus on <strong style="color:var(--text)">>1,000 employees & €450M turnover</strong> — higher scrutiny, not less.</div>
+    </div>
+    <div class="market-card span2">
+      <div class="mc-title">ESG Market Growth by Region (2025)</div>
+      <div class="mc-sub" style="margin-bottom:16px">Europe dominates regulatory-driven ESG adoption. Our primary market.</div>
+      <div class="bar-chart" id="marketBars">
+        <div class="bar-row"><span class="bar-label">Europe</span><div class="bar-track"><div class="bar-fill" data-width="88" style="background:var(--green)"></div></div><span class="bar-val">35.3%</span></div>
+        <div class="bar-row"><span class="bar-label">North America</span><div class="bar-track"><div class="bar-fill" data-width="70" style="background:var(--blue)"></div></div><span class="bar-val">26.4%</span></div>
+        <div class="bar-row"><span class="bar-label">Asia-Pacific</span><div class="bar-track"><div class="bar-fill" data-width="48" style="background:var(--amber)"></div></div><span class="bar-val">18.1%</span></div>
+        <div class="bar-row"><span class="bar-label">Rest of World</span><div class="bar-track"><div class="bar-fill" data-width="30"></div></div><span class="bar-val">20.2%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PROBLEM ═══ -->
+<div class="divider"></div>
+<section id="problem">
+  <div class="sec-header reveal">
+    <span class="sec-num">02</span>
+    <h2 class="sec-title">The <em>Problem</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="problem-grid reveal">
+    <div class="prob-card">
+      <span class="prob-icon">📊</span>
+      <div class="prob-title">Reports ≠ Communication</div>
+      <div class="prob-desc">ESG reports are written for regulators, not people. They're dense, technical, and impossible to turn into credible public communication without expert intervention.</div>
+      <div class="prob-stat">48% of companies lack standard ESG metrics</div>
+    </div>
+    <div class="prob-card">
+      <span class="prob-icon">⚠️</span>
+      <div class="prob-title">Marketing Tools Create Risk</div>
+      <div class="prob-desc">Existing content tools optimise for persuasion, not compliance. Using them for ESG communication is a legal liability — not a communications strategy.</div>
+      <div class="prob-stat">Regulators moving from guidance to enforcement in 2025</div>
+    </div>
+    <div class="prob-card">
+      <span class="prob-icon">⚖️</span>
+      <div class="prob-title">ESG is Now a Risk Function</div>
+      <div class="prob-desc">After EU Omnibus reform, scrutiny is higher than ever. One misleading ESG claim can trigger legal action, media backlash, and investor distrust simultaneously.</div>
+      <div class="prob-stat">DWS fined €25M · Air France investigated · KLM penalised</div>
+    </div>
+  </div>
+
+  <div class="greenwash-cases reveal">
+    <div class="gc-title">🔴 Recent Greenwashing Enforcement Cases (2024–2025)</div>
+    <div class="gc-list">
+      <div class="gc-item"><div class="gc-dot"></div><div class="gc-text"><strong>Deutsche Bank / DWS — €25M fine</strong> by German prosecutors for misleading investors about ESG credentials in marketing materials.</div></div>
+      <div class="gc-item"><div class="gc-dot"></div><div class="gc-text"><strong>Air France, Lufthansa, KLM</strong> — scrutinised for "carbon neutral" flight claims based on questionable offsetting schemes under EU Unfair Commercial Practices Directive.</div></div>
+      <div class="gc-item"><div class="gc-dot"></div><div class="gc-text"><strong>Coca-Cola</strong> — forced by European Commission to revise "100% recycled plastic" packaging claims that excluded caps and labels.</div></div>
+      <div class="gc-item"><div class="gc-dot"></div><div class="gc-text"><strong>HSBC</strong> exited Net-Zero Banking Alliance citing greenwashing exposure risk — signal that even avoidance of ESG claims is becoming a strategy.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SOLUTION ═══ -->
+<div class="divider"></div>
+<section id="solution">
+  <div class="sec-header reveal">
+    <span class="sec-num">03</span>
+    <h2 class="sec-title">The <em>Solution</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="solution-flow reveal">
+    <div class="sf-step"><span class="sf-icon">📄</span><div class="sf-title">Ingest ESG Report</div><div class="sf-desc">PDF/CSRD document uploaded by client</div></div>
+    <div class="sf-arrow">→</div>
+    <div class="sf-step"><span class="sf-icon">🔬</span><div class="sf-title">Separate Claims</div><div class="sf-desc">Facts vs targets vs ambitions</div></div>
+    <div class="sf-arrow">→</div>
+    <div class="sf-step shield"><span class="sf-icon">⚖️</span><div class="sf-title">Regulatory Check</div><div class="sf-desc">vs EU Green Claims, CSRD, EBA</div></div>
+    <div class="sf-arrow">→</div>
+    <div class="sf-step"><span class="sf-icon">🗺️</span><div class="sf-title">Narrative Design</div><div class="sf-desc">Safe story frameworks generated</div></div>
+    <div class="sf-arrow">→</div>
+    <div class="sf-step hitl"><span class="sf-icon">🤝</span><div class="sf-title">Human Gate</div><div class="sf-desc">Expert reviews — mandatory</div></div>
+    <div class="sf-arrow">→</div>
+    <div class="sf-step"><span class="sf-icon">✍️</span><div class="sf-title">Content Generation</div><div class="sf-desc">Messages, scripts, AI video</div></div>
+    <div class="sf-arrow">→</div>
+    <div class="sf-step shield"><span class="sf-icon">🛡️</span><div class="sf-title">Final Audit</div><div class="sf-desc">Anti-greenwashing certificate</div></div>
+  </div>
+
+  <div class="differentiators reveal">
+    <div class="diff-card">
+      <div class="diff-label">Differentiator 01</div>
+      <div class="diff-title">Not a marketing tool</div>
+      <div class="diff-desc">Built as a communication safety system. Every output is bounded by EU regulatory knowledge — not brand guidelines.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-label">Differentiator 02</div>
+      <div class="diff-title">Human-in-the-loop by design</div>
+      <div class="diff-desc">Two mandatory expert review gates that cannot be bypassed. The human layer is the product, not a premium add-on.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-label">Differentiator 03</div>
+      <div class="diff-title">Built from paid projects</div>
+      <div class="diff-desc">Not theoretical. Tested with real enterprise clients. The process was validated before the platform was designed.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px" class="reveal">
+    <div class="market-card span2">
+      <div class="mc-title" style="margin-bottom:16px">Competitive Landscape</div>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Tool / Approach</th>
+            <th>Regulatory compliance</th>
+            <th>Human oversight</th>
+            <th>Narrative safety</th>
+            <th>Greenwash audit</th>
+            <th>Video output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="us">
+            <td><strong>ESG Narrative Intelligence ✦</strong></td>
+            <td class="check">✓ Built-in</td>
+            <td class="check">✓ Mandatory</td>
+            <td class="check">✓ Core feature</td>
+            <td class="check">✓ Certificate</td>
+            <td class="check">✓ AI prototype</td>
+          </tr>
+          <tr>
+            <td>Generic AI writing tools</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="partial">~</td>
+          </tr>
+          <tr>
+            <td>ESG consulting firms</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="partial">~</td>
+            <td class="partial">~</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>PR / comms agencies</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="partial">~</td>
+            <td class="cross">✗</td>
+            <td class="partial">~</td>
+          </tr>
+          <tr>
+            <td>ESG reporting software</td>
+            <td class="check">✓</td>
+            <td class="partial">~</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TRACTION ═══ -->
+<div class="divider"></div>
+<section id="traction">
+  <div class="sec-header reveal">
+    <span class="sec-num">04</span>
+    <h2 class="sec-title">Traction & <em>Pivot</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="traction-row reveal">
+    <div class="tr-card highlight">
+      <div class="tr-val">€11.4k</div>
+      <div class="tr-label">Paid pilot<br>completed & invoiced</div>
+    </div>
+    <div class="tr-card">
+      <div class="tr-val">€51k</div>
+      <div class="tr-label">Enterprise proposal<br>submitted & tested</div>
+    </div>
+    <div class="tr-card">
+      <div class="tr-val">5</div>
+      <div class="tr-label">Buyer interviews<br>Heads of ESG & Comms</div>
+    </div>
+  </div>
+
+  <div class="pivot-box reveal">
+    <div class="pivot-col before">
+      <div class="p-label">✗ What we believed</div>
+      <div class="pivot-item"><span class="pivot-icon">❌</span><div class="pivot-text">Companies want large ESG film packages as their primary deliverable</div></div>
+      <div class="pivot-item"><span class="pivot-icon">❌</span><div class="pivot-text">Production quality is the main differentiator in the ESG communication space</div></div>
+      <div class="pivot-item"><span class="pivot-icon">❌</span><div class="pivot-text">Content creation is the bottleneck for ESG teams</div></div>
+    </div>
+    <div class="pivot-col after">
+      <div class="p-label">✓ What we learned</div>
+      <div class="pivot-item"><span class="pivot-icon">✅</span><div class="pivot-text">Companies want risk-reducing, compliant ESG communication above all else</div></div>
+      <div class="pivot-item"><span class="pivot-icon">✅</span><div class="pivot-text">Regulatory safety and credibility are the real differentiators buyers pay for</div></div>
+      <div class="pivot-item"><span class="pivot-icon">✅</span><div class="pivot-text">Greenwashing risk is the actual bottleneck — not content creation speed</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ BUSINESS MODEL ═══ -->
+<div class="divider"></div>
+<section id="model">
+  <div class="sec-header reveal">
+    <span class="sec-num">05</span>
+    <h2 class="sec-title">Business <em>Model</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="bm-grid reveal">
+    <div class="bm-card">
+      <div class="bm-label">Revenue Stream 01</div>
+      <div class="bm-title">SaaS Subscription</div>
+      <div class="bm-desc">Annual platform access for ESG & comms teams. Narrative verification, regulatory updates, compliance monitoring.</div>
+      <div class="bm-price">€20k–40k / year</div>
+    </div>
+    <div class="bm-card">
+      <div class="bm-label">Revenue Stream 02</div>
+      <div class="bm-title">Premium Human Expert Layer</div>
+      <div class="bm-desc">ESG specialist + narrative expert engagement for complex regulatory environments or high-profile communications.</div>
+      <div class="bm-price">€10k–20k / engagement</div>
+    </div>
+    <div class="bm-card">
+      <div class="bm-label">Revenue Stream 03</div>
+      <div class="bm-title">Narrative Compliance Audits</div>
+      <div class="bm-desc">Pay-per-use audit of existing ESG communications. Risk assessment + certificate of compliance.</div>
+      <div class="bm-price">€5k–8k / audit</div>
+    </div>
+    <div class="bm-card">
+      <div class="bm-label">Revenue Stream 04</div>
+      <div class="bm-title">AI Video Prototyping</div>
+      <div class="bm-desc">Compliant ESG story prototypes for stakeholder presentations. Built on the validated narrative framework.</div>
+      <div class="bm-price">€8k–15k / project</div>
+    </div>
+  </div>
+
+  <div class="margin-visual reveal">
+    <div class="mv-title">Gross Margin Potential by Revenue Stream</div>
+    <div class="mv-bars" id="marginBars">
+      <div class="mv-bar-wrap">
+        <div class="mv-bar-val">70%+</div>
+        <div class="mv-bar green-b" data-height="85" style="height:0px"></div>
+        <div class="mv-bar-lbl">SaaS<br>Subscription</div>
+      </div>
+      <div class="mv-bar-wrap">
+        <div class="mv-bar-val">45%</div>
+        <div class="mv-bar blue-b" data-height="54" style="height:0px"></div>
+        <div class="mv-bar-lbl">Expert<br>Layer</div>
+      </div>
+      <div class="mv-bar-wrap">
+        <div class="mv-bar-val">60%</div>
+        <div class="mv-bar green-b" data-height="72" style="height:0px"></div>
+        <div class="mv-bar-lbl">Compliance<br>Audits</div>
+      </div>
+      <div class="mv-bar-wrap">
+        <div class="mv-bar-val">40%</div>
+        <div class="mv-bar amber-b" data-height="48" style="height:0px"></div>
+        <div class="mv-bar-lbl">AI Video<br>Prototyping</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TECH STACK ═══ -->
+<div class="divider"></div>
+<section id="stack">
+  <div class="sec-header reveal">
+    <span class="sec-num">06</span>
+    <h2 class="sec-title">Tech <em>Stack</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="tabs reveal">
+    <button class="tab-btn active" onclick="switchTab('mvp')">Phase 1 — Manual MVP</button>
+    <button class="tab-btn" onclick="switchTab('auto')">Phase 2 — Automated</button>
+    <button class="tab-btn" onclick="switchTab('saas')">Phase 3 — SaaS</button>
+  </div>
+
+  <div id="tab-mvp" class="tab-panel active">
+    <div class="tech-layers">
+      <div class="tech-layer">
+        <div class="tl-header green-h"><div class="tl-name">🧠 AI Layer</div><div class="tl-desc">Core intelligence — start here</div></div>
+        <div class="tl-tools">
+          <div class="tl-tool"><div class="tl-tool-name">Claude AI (claude.ai)</div><div class="tl-tool-role">Document analysis, claim separation, narrative generation — run manually via chat interface</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Google NotebookLM</div><div class="tl-tool-role">ESG regulatory knowledge base — upload EU directives, query against client claims</div></div>
+        </div>
+      </div>
+      <div class="tech-layer">
+        <div class="tl-header amber-h"><div class="tl-name">🤝 Human Review Layer</div><div class="tl-desc">The differentiator — expert gates</div></div>
+        <div class="tl-tools">
+          <div class="tl-tool"><div class="tl-tool-name">Notion</div><div class="tl-tool-role">Shared review doc — expert approves/rejects each AI claim categorisation</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Google Docs</div><div class="tl-tool-role">Output delivery — narrative framework + compliance notes delivered to client</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Tally Form</div><div class="tl-tool-role">Client intake — structured ESG report upload + communication goals</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px; padding:16px 20px; background:var(--green-muted); border:1px solid var(--green-dim); border-radius:6px; font-size:12px; color:var(--text-muted);">
+      💡 <strong style="color:var(--green)">Phase 1 cost: ~€50/month.</strong> Zero code required. Charge €10k–15k per pilot. Prove the model before building the product.
+    </div>
+  </div>
+
+  <div id="tab-auto" class="tab-panel">
+    <div class="tech-layers">
+      <div class="tech-layer">
+        <div class="tl-header blue-h"><div class="tl-name">⚙️ Automation</div><div class="tl-desc">Connect everything without code</div></div>
+        <div class="tl-tools">
+          <div class="tl-tool"><div class="tl-tool-name">n8n</div><div class="tl-tool-role">Workflow orchestration — upload triggers AI pipeline, notifies expert, routes output</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Claude API</div><div class="tl-tool-role">Programmatic AI calls — structured analysis pipeline runs automatically on each document</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Pinecone</div><div class="tl-tool-role">Vector database for EU regulatory knowledge — real-time compliance checks against all 5 frameworks</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Reducto / LlamaParse</div><div class="tl-tool-role">PDF ingestion — extracts tables, charts, footnotes from complex ESG reports accurately</div></div>
+        </div>
+      </div>
+      <div class="tech-layer">
+        <div class="tl-header green-h"><div class="tl-name">📄 Output Generation</div><div class="tl-desc">Professional deliverables</div></div>
+        <div class="tl-tools">
+          <div class="tl-tool"><div class="tl-tool-name">DocuGenerate</div><div class="tl-tool-role">Compliance reports & narrative frameworks generated as formatted Word/PDF documents</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">DocuSign</div><div class="tl-tool-role">Client sign-off on approved narrative framework — creates legal audit trail</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Stripe</div><div class="tl-tool-role">Payments and subscription management</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-saas" class="tab-panel">
+    <div class="tech-layers">
+      <div class="tech-layer">
+        <div class="tl-header purple-h"><div class="tl-name">🖥️ Client Portal</div><div class="tl-desc">Full SaaS platform</div></div>
+        <div class="tl-tools">
+          <div class="tl-tool"><div class="tl-tool-name">Bubble.io</div><div class="tl-tool-role">No-code full web application — client dashboard, upload interface, review workflow, iteration tools</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">Auth0</div><div class="tl-tool-role">Enterprise SSO login — required by large corporate ESG teams</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">HeyGen / Runway</div><div class="tl-tool-role">AI video prototype generation from approved ESG narratives — scales the film production capability</div></div>
+          <div class="tl-tool"><div class="tl-tool-name">PostHog</div><div class="tl-tool-role">Product analytics — understand how clients use the platform, optimise onboarding</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ROADMAP ═══ -->
+<div class="divider"></div>
+<section id="roadmap">
+  <div class="sec-header reveal">
+    <span class="sec-num">07</span>
+    <h2 class="sec-title">Build <em>Roadmap</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="roadmap reveal">
+    <div class="rm-phase">
+      <div class="rm-num">PHASE 01</div>
+      <div class="rm-title">Manual MVP</div>
+      <div class="rm-timeline">Now — Month 2</div>
+      <div class="rm-items">
+        <div class="rm-item">Deliver PBZ pilot (ESG film + narrative framework)</div>
+        <div class="rm-item">Document the full manual process</div>
+        <div class="rm-item">Secure 1 more paid pilot from existing leads</div>
+        <div class="rm-item">Validate pricing at €10k–15k</div>
+        <div class="rm-item">Build Pinecone regulatory knowledge base</div>
+      </div>
+      <div class="rm-cost"><div class="rm-cost-val">~€50/mo</div><div class="rm-cost-lbl">tooling cost</div></div>
+    </div>
+    <div class="rm-phase">
+      <div class="rm-num">PHASE 02</div>
+      <div class="rm-title">Automated Core</div>
+      <div class="rm-timeline">Month 2–5</div>
+      <div class="rm-items">
+        <div class="rm-item">Hire AI Product Engineer (freelance, €3k–6k)</div>
+        <div class="rm-item">Build n8n pipeline: upload → AI → expert notify</div>
+        <div class="rm-item">Launch basic client portal on Bubble.io</div>
+        <div class="rm-item">Integrate DocuGenerate for report output</div>
+        <div class="rm-item">Stripe for payments live</div>
+      </div>
+      <div class="rm-cost"><div class="rm-cost-val">~€300/mo</div><div class="rm-cost-lbl">tooling cost</div></div>
+    </div>
+    <div class="rm-phase">
+      <div class="rm-num">PHASE 03</div>
+      <div class="rm-title">SaaS Platform</div>
+      <div class="rm-timeline">Month 5–12</div>
+      <div class="rm-items">
+        <div class="rm-item">Full self-serve client onboarding</div>
+        <div class="rm-item">Subscription tiers live (€20k–40k/yr)</div>
+        <div class="rm-item">HeyGen AI video integrated</div>
+        <div class="rm-item">EU market expansion</div>
+        <div class="rm-item">Impact Media Fund formalised</div>
+      </div>
+      <div class="rm-cost"><div class="rm-cost-val">~€800/mo</div><div class="rm-cost-lbl">tooling cost</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ASK ═══ -->
+<div class="divider"></div>
+<section id="ask">
+  <div class="sec-header reveal">
+    <span class="sec-num">08</span>
+    <h2 class="sec-title">The <em>Ask</em></h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="ask-grid reveal">
+    <div class="ask-card">
+      <span class="ask-icon">🤝</span>
+      <div class="ask-title">Pilot Partners</div>
+      <div class="ask-desc">ESG or corporate communications teams at companies with active sustainability reporting obligations. Looking for 2 paid pilots in the next 30 days.</div>
+    </div>
+    <div class="ask-card">
+      <span class="ask-icon">🧠</span>
+      <div class="ask-title">Mentors</div>
+      <div class="ask-desc">Expertise in AI productisation, B2B SaaS go-to-market, and EU regulatory landscape (CSRD, Green Claims Directive).</div>
+    </div>
+    <div class="ask-card">
+      <span class="ask-icon">🎓</span>
+      <div class="ask-title">Hult Validation</div>
+      <div class="ask-desc">Early feedback and network connections through the Hult Prize ecosystem to pressure-test the business model and regulatory assumptions.</div>
+    </div>
+  </div>
+
+  <div class="founder-card reveal">
+    <div class="fc-avatar">🎬</div>
+    <div>
+      <div class="fc-name">Đuro Gavran</div>
+      <div class="fc-role">Founder · Vanguard Cotrugli MBA 2026</div>
+      <div class="fc-bio">Film producer and creative director with direct experience delivering paid ESG communication projects for enterprise clients including PBZ Banka (Intesa Sanpaolo Group). Building ESG Narrative Intelligence to systematise what works — and make compliant ESG storytelling accessible at scale.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px; padding:20px 24px; background:var(--surface); border:1px solid var(--border); border-radius:8px; text-align:center;" class="reveal">
+    <div style="font-size:11px; color:var(--text-muted); letter-spacing:.15em; text-transform:uppercase; margin-bottom:8px;">Elevator Pitch</div>
+    <div style="font-family:'Instrument Serif',serif; font-size:18px; color:var(--text); line-height:1.5; max-width:600px; margin:0 auto; font-style:italic;">"ESG reports are written for regulators, not people. We turn them into credible, legally safe stories — using AI that knows the rules, and humans who know the difference."</div>
+    <div style="margin-top:12px; font-size:11px; color:var(--text-dim);">SDG 9 · SDG 12 · Impact Media Fund</div>
+  </div>
+</section>
+
+<footer>
+  <div>ESG Narrative Intelligence · MVP Research Dashboard · <span>Vanguard Cotrugli MBA 2026</span></div>
+  <div style="margin-top:6px">Đuro Gavran · Built with Claude AI · April 2026</div>
+</footer>
+
+<script>
+  // ── SCROLL REVEAL ──
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // Trigger bar animations
+        const bars = e.target.querySelectorAll('.bar-fill');
+        bars.forEach(b => { b.style.width = b.dataset.width + '%'; });
+        const mBars = e.target.querySelectorAll('.mv-bar');
+        mBars.forEach(b => { b.style.height = b.dataset.height + 'px'; });
+      }
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(r => observer.observe(r));
+
+  // ── NAV ACTIVE STATE ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+
+  // ── TABS ──
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

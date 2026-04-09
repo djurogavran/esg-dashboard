@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESG Narrative Intelligence — Technical Stack</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111814;
+    --surface2: #161e1a;
+    --border: #1e2d25;
+    --green: #3ddc84;
+    --green-dim: #2a9e5e;
+    --green-muted: #1a4d32;
+    --amber: #f5a623;
+    --amber-dim: #8a5a0a;
+    --red: #e05a3a;
+    --red-dim: #2d1008;
+    --blue: #4a9edd;
+    --blue-dim: #0d2a3d;
+    --purple: #a78bfa;
+    --purple-dim: #1e1035;
+    --text: #e8f0eb;
+    --text-muted: #6b8a74;
+    --text-dim: #3d5445;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container { max-width: 980px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* HEADER */
+  header { margin-bottom: 56px; opacity: 0; animation: fadeIn .5s .1s forwards; }
+  .eyebrow { font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 4vw, 52px); line-height: 1.05; }
+  h1 em { font-style: italic; color: var(--green); }
+  .header-sub { margin-top: 12px; font-size: 12px; color: var(--text-muted); max-width: 560px; line-height: 1.7; }
+
+  /* SECTION */
+  .section { margin-bottom: 10px; opacity: 0; animation: fadeUp .5s ease forwards; }
+  .section:nth-child(1) { animation-delay: .2s }
+  .section:nth-child(2) { animation-delay: .3s }
+  .section:nth-child(3) { animation-delay: .4s }
+  .section:nth-child(4) { animation-delay: .5s }
+  .section:nth-child(5) { animation-delay: .6s }
+  .section:nth-child(6) { animation-delay: .7s }
+  .section:nth-child(7) { animation-delay: .8s }
+
+  .section-label {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  .section-label .line { flex: 1; height: 1px; background: var(--border); }
+  .section-label span { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+  /* PHASE BANNER */
+  .phase-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    border-radius: 6px 6px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .phase-banner.green  { background: var(--green-muted); border-color: var(--green-dim); }
+  .phase-banner.amber  { background: var(--amber-dim);   border-color: var(--amber); }
+  .phase-banner.blue   { background: var(--blue-dim);    border-color: var(--blue); }
+  .phase-banner.purple { background: var(--purple-dim);  border-color: var(--purple); }
+  .phase-banner.red    { background: var(--red-dim);     border-color: var(--red); }
+
+  .phase-banner .p-title { font-size: 13px; font-weight: 600; }
+  .phase-banner.green  .p-title { color: var(--green); }
+  .phase-banner.amber  .p-title { color: var(--amber); }
+  .phase-banner.blue   .p-title { color: var(--blue);  }
+  .phase-banner.purple .p-title { color: var(--purple);}
+  .phase-banner.red    .p-title { color: var(--red);   }
+
+  .phase-banner .p-meta { font-size: 10px; color: var(--text-muted); }
+  .phase-banner .p-badge {
+    font-size: 9px; padding: 3px 10px; border-radius: 2px;
+    font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .phase-banner.green  .p-badge { background: var(--green); color: #001a0a; }
+  .phase-banner.amber  .p-badge { background: var(--amber); color: #1a0a00; }
+  .phase-banner.blue   .p-badge { background: var(--blue);  color: #001a2d; }
+  .phase-banner.purple .p-badge { background: var(--purple);color: #0d0020; }
+  .phase-banner.red    .p-badge { background: var(--red);   color: #1a0000; }
+
+  /* TOOL GRID */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+  }
+  .tool-card {
+    padding: 18px 16px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    transition: background .2s;
+    position: relative;
+  }
+  .tool-card:hover { background: var(--surface2); }
+  .tool-card:last-child { border-right: none; }
+
+  .tool-logo { font-size: 22px; margin-bottom: 8px; display: block; }
+  .tool-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .tool-role { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
+  .tool-why  { font-size: 10px; color: var(--text-dim); line-height: 1.5; font-style: italic; }
+
+  .tool-tag {
+    position: absolute; top: 12px; right: 12px;
+    font-size: 8.5px; padding: 2px 7px; border-radius: 2px;
+    font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .tag-free     { background: var(--green-muted); color: var(--green); }
+  .tag-paid     { background: #1a1208; color: var(--amber); border: 1px solid var(--amber-dim); }
+  .tag-key      { background: var(--red-dim); color: var(--red); border: 1px solid #4d1a08; }
+  .tag-optional { background: #0d1a2d; color: #6ba8dd; }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .arch-box {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .arch-box .a-label { font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  .arch-box .a-name  { font-size: 12px; font-weight: 600; color: var(--text); }
+  .arch-box.highlight { background: var(--green-muted); border-color: var(--green-dim); }
+  .arch-box.highlight .a-name { color: var(--green); }
+  .arch-box.amber-h { background: var(--amber-dim); border-color: var(--amber); }
+  .arch-box.amber-h .a-name { color: var(--amber); }
+
+  .arch-arrow { color: var(--text-dim); font-size: 16px; flex-shrink: 0; }
+  .arch-down  { text-align: center; color: var(--text-dim); font-size: 18px; line-height: 1; margin: 2px 0; }
+
+  /* TIMELINE */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .tl-phase {
+    padding: 20px 18px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tl-phase:last-child { border-right: none; }
+  .tl-num   { font-size: 10px; color: var(--text-dim); letter-spacing: .2em; margin-bottom: 8px; }
+  .tl-title { font-family: 'Instrument Serif', serif; font-size: 16px; color: var(--text); margin-bottom: 4px; }
+  .tl-sub   { font-size: 10px; color: var(--text-muted); margin-bottom: 12px; }
+  .tl-items { display: flex; flex-direction: column; gap: 5px; }
+  .tl-item  { font-size: 10.5px; color: var(--text-muted); padding-left: 14px; position: relative; line-height: 1.5; }
+  .tl-item::before { content: '·'; position: absolute; left: 4px; color: var(--green); }
+  .tl-cost  { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .tl-cost .cost-val { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--green); }
+  .tl-cost .cost-label { font-size: 9px; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; }
+
+  .tl-phase:nth-child(2) { background: #0d1f14; }
+  .tl-phase:nth-child(3) { background: var(--surface2); }
+
+  /* FOUNDER NOTE */
+  .founder-note {
+    background: #130f08;
+    border: 1px solid var(--amber-dim);
+    border-left: 3px solid var(--amber);
+    border-radius: 6px;
+    padding: 20px 24px;
+  }
+  .fn-title { font-size: 12px; font-weight: 600; color: var(--amber); margin-bottom: 8px; letter-spacing: .05em; }
+  .fn-text  { font-size: 11px; color: var(--text-muted); line-height: 1.75; }
+  .fn-text strong { color: var(--text); font-weight: 600; }
+
+  /* METRICS ROW */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; text-align: center; }
+  .metric .m-val { font-family: 'Instrument Serif', serif; font-size: 26px; color: var(--green); line-height: 1; margin-bottom: 4px; }
+  .metric .m-label { font-size: 10px; color: var(--text-muted); letter-spacing: .1em; text-transform: uppercase; line-height: 1.4; }
+
+  @keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
+
+  @media (max-width: 680px) {
+    .timeline { grid-template-columns: 1fr; }
+    .tl-phase { border-right: none; border-bottom: 1px solid var(--border); }
+    .metrics  { grid-template-columns: repeat(2, 1fr); }
+    .arch-row { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Technical Stack · Non-Technical Founder Edition</div>
+    <h1>What you need to build<br><em>ESG Narrative Intelligence</em></h1>
+    <div class="header-sub">Designed for a solo non-technical founder. Every tool chosen for maximum capability with minimum engineering. No code required for MVP — real code only when revenue justifies it.</div>
+  </header>
+
+  <!-- ═══ 1. FRONTEND / CLIENT PORTAL ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>01 — Client Portal (What clients see & use)</span><div class="line"></div></div>
+    <div class="phase-banner green">
+      <div><div class="p-title">🖥️ Frontend & Client Interface</div><div class="p-meta">Where clients upload reports, review outputs, request changes</div></div>
+      <div class="p-badge">Start here</div>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-tag tag-key">MVP Core</span>
+        <span class="tool-logo">🫧</span>
+        <div class="tool-name">Bubble.io</div>
+        <div class="tool-role">Full no-code web app platform. Build the entire client portal without writing a line of code.</div>
+        <div class="tool-why">Drag-and-drop UI builder. Handles user login, file upload, dashboards, workflows. Used by funded startups at Series A.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-paid">Alternative</span>
+        <span class="tool-logo">🔷</span>
+        <div class="tool-name">Framer / Webflow</div>
+        <div class="tool-role">Marketing site + simple client onboarding pages.</div>
+        <div class="tool-why">If you only need a landing page + intake form for early pilots, this is faster than Bubble.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Free tier</span>
+        <span class="tool-logo">📋</span>
+        <div class="tool-name">Tally / Typeform</div>
+        <div class="tool-role">Client intake forms. Collects report uploads, company info, communication goals.</div>
+        <div class="tool-why">For the first 2 pilots you don't need a full portal — a smart form is enough to start.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-optional">Optional</span>
+        <span class="tool-logo">🔔</span>
+        <div class="tool-name">Intercom / Crisp</div>
+        <div class="tool-role">In-app chat for client communication during review iterations.</div>
+        <div class="tool-why">Human-in-the-loop needs a communication channel. Chat inside the platform beats email chaos.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 2. AI BRAIN ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>02 — AI Brain (The core intelligence)</span><div class="line"></div></div>
+    <div class="phase-banner blue">
+      <div><div class="p-title">🧠 AI & LLM Layer</div><div class="p-meta">Document analysis, claim separation, narrative generation, compliance checking</div></div>
+      <div class="p-badge">Differentiator</div>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-tag tag-key">Core AI</span>
+        <span class="tool-logo">⚡</span>
+        <div class="tool-name">Claude API (Anthropic)</div>
+        <div class="tool-role">Primary LLM for document analysis, claim categorisation, narrative generation.</div>
+        <div class="tool-why">Best-in-class for long document analysis and nuanced language tasks. Strong at following complex compliance instructions.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-key">Orchestration</span>
+        <span class="tool-logo">🔗</span>
+        <div class="tool-name">n8n / Make.com</div>
+        <div class="tool-role">Connects all tools together. Triggers AI pipeline when client uploads document.</div>
+        <div class="tool-why">No-code workflow automation. This is the "nervous system" that connects upload → AI → human review → output.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-paid">Knowledge Base</span>
+        <span class="tool-logo">📚</span>
+        <div class="tool-name">Pinecone / Weaviate</div>
+        <div class="tool-role">Vector database storing EU regulations. AI checks claims against this knowledge base in real time.</div>
+        <div class="tool-why">This is what makes the regulatory check possible. All 5 EU frameworks are stored here and updated when regulation changes.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Alternative</span>
+        <span class="tool-logo">🤖</span>
+        <div class="tool-name">OpenAI GPT-4o</div>
+        <div class="tool-role">Secondary or fallback LLM. Can be used for specific tasks where GPT-4o performs better.</div>
+        <div class="tool-why">Good for structured JSON outputs and function calling. Use alongside Claude, not instead of it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 3. DOCUMENT PROCESSING ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>03 — Document Processing</span><div class="line"></div></div>
+    <div class="phase-banner amber">
+      <div><div class="p-title">📄 Ingestion & Output Generation</div><div class="p-meta">Reading ESG reports in, generating compliant content out</div></div>
+      <div class="p-badge">No-code possible</div>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-tag tag-paid">Ingestion</span>
+        <span class="tool-logo">🔍</span>
+        <div class="tool-name">Reducto / LlamaParse</div>
+        <div class="tool-role">Converts complex ESG PDFs into clean structured text that AI can process accurately.</div>
+        <div class="tool-why">ESG reports are messy — tables, charts, footnotes. These tools extract content far better than basic PDF readers.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Storage</span>
+        <span class="tool-logo">☁️</span>
+        <div class="tool-name">Google Drive / S3</div>
+        <div class="tool-role">Stores uploaded ESG reports and generated output documents.</div>
+        <div class="tool-why">Start with Google Drive (free, integrates with everything). Move to AWS S3 when you scale.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-paid">Output Docs</span>
+        <span class="tool-logo">📝</span>
+        <div class="tool-name">DocuGenerate / Carbone</div>
+        <div class="tool-role">Generates formatted Word/PDF compliance reports and narrative frameworks from AI outputs.</div>
+        <div class="tool-why">Clients expect polished documents, not raw AI text. This turns AI output into professional deliverables.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-optional">Video</span>
+        <span class="tool-logo">🎬</span>
+        <div class="tool-name">HeyGen / Runway</div>
+        <div class="tool-role">Generates AI video prototypes from approved ESG narratives and scripts.</div>
+        <div class="tool-why">Your paid pilot was a 90-second ESG film. This keeps that capability in the platform at scale — no full production needed.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 4. HUMAN-IN-THE-LOOP TOOLS ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>04 — Human-in-the-Loop Infrastructure</span><div class="line"></div></div>
+    <div class="phase-banner purple">
+      <div><div class="p-title">🤝 Expert Review Layer</div><div class="p-meta">The mandatory human gates — your key differentiator from pure AI tools</div></div>
+      <div class="p-badge">Differentiator</div>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-tag tag-key">Review</span>
+        <span class="tool-logo">✅</span>
+        <div class="tool-name">Notion / Airtable</div>
+        <div class="tool-role">Expert review dashboard. Shows AI outputs with approve / reject / modify actions for each claim.</div>
+        <div class="tool-why">For MVP, a structured Notion database is enough to manage human review before building a custom interface.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Collaboration</span>
+        <span class="tool-logo">💬</span>
+        <div class="tool-name">Slack</div>
+        <div class="tool-role">Internal communication between you, ESG expert, and narrative specialist during review.</div>
+        <div class="tool-why">Free, fast, integrates with n8n so you get automatic notifications when a document needs human review.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-paid">e-Signature</span>
+        <span class="tool-logo">✍️</span>
+        <div class="tool-name">DocuSign / Signeasy</div>
+        <div class="tool-role">Client signs off on the final compliance-checked narrative framework before content is published.</div>
+        <div class="tool-why">Creates legal paper trail. Protects client AND you. Essential for the compliance certificate deliverable.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-optional">Audit Trail</span>
+        <span class="tool-logo">🗂️</span>
+        <div class="tool-name">Airtable</div>
+        <div class="tool-role">Logs every decision made at human review gates — who approved what, when, and why.</div>
+        <div class="tool-why">The compliance certificate needs to reference an audit trail. This is the database behind it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 5. INFRASTRUCTURE ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>05 — Business Infrastructure</span><div class="line"></div></div>
+    <div class="phase-banner red">
+      <div><div class="p-title">⚙️ Payments, Auth & Analytics</div><div class="p-meta">The boring but essential layer</div></div>
+      <div class="p-badge">~1 day setup</div>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-tag tag-key">Payments</span>
+        <span class="tool-logo">💳</span>
+        <div class="tool-name">Stripe</div>
+        <div class="tool-role">Handles SaaS subscriptions, one-time payments for audits, invoicing.</div>
+        <div class="tool-why">Industry standard. Integrates with Bubble.io natively. You need this before your first paid pilot goes live.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Auth</span>
+        <span class="tool-logo">🔐</span>
+        <div class="tool-name">Auth0 / Clerk</div>
+        <div class="tool-role">Secure login for clients. SSO, enterprise login for large corporate clients.</div>
+        <div class="tool-why">Enterprise ESG teams expect SSO. This is table stakes for B2B SaaS credibility.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Analytics</span>
+        <span class="tool-logo">📊</span>
+        <div class="tool-name">PostHog / Mixpanel</div>
+        <div class="tool-role">Tracks how clients use the platform. Which steps take longest, where they drop off.</div>
+        <div class="tool-why">Essential for iterating the product. Free tier is more than enough for first 10 clients.</div>
+      </div>
+      <div class="tool-card">
+        <span class="tool-tag tag-free">Email</span>
+        <span class="tool-logo">📧</span>
+        <div class="tool-name">Resend / SendGrid</div>
+        <div class="tool-role">Automated emails: upload confirmed, review ready, report delivered.</div>
+        <div class="tool-why">Professional transactional email. Free tier covers early-stage volume easily.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ARCHITECTURE DIAGRAM ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>06 — How it all connects</span><div class="line"></div></div>
+    <div class="arch">
+      <div class="arch-row">
+        <div class="arch-box"><div class="a-label">Client</div><div class="a-name">Uploads ESG Report</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box highlight"><div class="a-label">Bubble.io Portal</div><div class="a-name">Intake + Storage</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="a-label">n8n Trigger</div><div class="a-name">Pipeline starts</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="a-label">Reducto</div><div class="a-name">PDF Parsed</div></div>
+      </div>
+      <div class="arch-down">↓</div>
+      <div class="arch-row">
+        <div class="arch-box"><div class="a-label">DocuGenerate</div><div class="a-name">Report Generated</div></div>
+        <div class="arch-arrow">←</div>
+        <div class="arch-box amber-h"><div class="a-label">Human Gate ×2</div><div class="a-name">Expert Reviews</div></div>
+        <div class="arch-arrow">←</div>
+        <div class="arch-box highlight"><div class="a-label">Claude API + Pinecone</div><div class="a-name">Analysis + Compliance Check</div></div>
+        <div class="arch-arrow">←</div>
+        <div class="arch-box"><div class="a-label">n8n</div><div class="a-name">Orchestrates AI calls</div></div>
+      </div>
+      <div class="arch-down">↓</div>
+      <div class="arch-row">
+        <div class="arch-box highlight"><div class="a-label">Final Output</div><div class="a-name">Narrative Report + Compliance Certificate + AI Video</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="a-label">DocuSign</div><div class="a-name">Client Signs Off</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box"><div class="a-label">Stripe</div><div class="a-name">Invoice Sent</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BUILD TIMELINE ═══ -->
+  <div class="section">
+    <div class="section-label"><div class="line"></div><span>07 — Realistic Build Timeline</span><div class="line"></div></div>
+    <div class="timeline">
+      <div class="tl-phase">
+        <div class="tl-num">PHASE 01 · Weeks 1–4</div>
+        <div class="tl-title">Manual MVP</div>
+        <div class="tl-sub">Do it by hand, prove it works</div>
+        <div class="tl-items">
+          <div class="tl-item">Client sends PDF via Tally form</div>
+          <div class="tl-item">You run Claude manually via claude.ai</div>
+          <div class="tl-item">Expert reviews in shared Notion doc</div>
+          <div class="tl-item">Output delivered as Google Doc</div>
+          <div class="tl-item">Charge €10k–15k per pilot</div>
+        </div>
+        <div class="tl-cost">
+          <div class="cost-val">~€50/mo</div>
+          <div class="cost-label">tooling cost</div>
+        </div>
+      </div>
+      <div class="tl-phase">
+        <div class="tl-num">PHASE 02 · Months 2–4</div>
+        <div class="tl-title">Automated Core</div>
+        <div class="tl-sub">Automate the repeatable parts</div>
+        <div class="tl-items">
+          <div class="tl-item">n8n pipeline: upload → AI → notify expert</div>
+          <div class="tl-item">Pinecone knowledge base with EU regs</div>
+          <div class="tl-item">Bubble.io client portal (basic)</div>
+          <div class="tl-item">DocuGenerate for report output</div>
+          <div class="tl-item">Stripe for payments</div>
+        </div>
+        <div class="tl-cost">
+          <div class="cost-val">~€300/mo</div>
+          <div class="cost-label">tooling cost</div>
+        </div>
+      </div>
+      <div class="tl-phase">
+        <div class="tl-num">PHASE 03 · Months 5–12</div>
+        <div class="tl-title">SaaS Platform</div>
+        <div class="tl-sub">Scale with recurring revenue</div>
+        <div class="tl-items">
+          <div class="tl-item">Full Bubble.io portal with client dashboard</div>
+          <div class="tl-item">Self-serve onboarding flow</div>
+          <div class="tl-item">HeyGen AI video prototypes integrated</div>
+          <div class="tl-item">Hire first developer to custom-build critical parts</div>
+          <div class="tl-item">SaaS subscription tiers live</div>
+        </div>
+        <div class="tl-cost">
+          <div class="cost-val">~€800/mo</div>
+          <div class="cost-label">tooling cost</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOUNDER NOTE -->
+  <div class="section">
+    <div class="founder-note">
+      <div class="fn-title">⚠️ Founder's reality check</div>
+      <div class="fn-text">
+        You don't need to build all of this to get your first two paying pilots. <strong>Phase 1 requires zero technical setup</strong> — just Claude, a shared Notion doc, and a Google Form. That's enough to charge €10k–15k and prove the model works.<br><br>
+        The biggest risk for a non-technical solo founder is <strong>building too much too soon</strong>. Every tool you add before you have paying clients is overhead, not progress. The stack above is the full picture — but you only need the first three boxes to start.
+        <br><br>
+        <strong>The one thing worth investing in early:</strong> the Pinecone regulatory knowledge base. That's your defensible moat — it takes time to build and competitors can't copy it overnight.
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="section">
+    <div class="metrics">
+      <div class="metric"><div class="m-val">0</div><div class="m-label">lines of code<br>for Phase 1</div></div>
+      <div class="metric"><div class="m-val">€50</div><div class="m-label">monthly cost<br>to start</div></div>
+      <div class="metric"><div class="m-val">4 wks</div><div class="m-label">to first<br>paid pilot</div></div>
+      <div class="metric"><div class="m-val">1</div><div class="m-label">tool that<br>matters most: Claude</div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
